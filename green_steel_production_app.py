@@ -150,10 +150,6 @@ def calculate_steel_production_costs(
         plt.annotate(f'Tipping Calendar Year: {intersection_year}', xy=(intersection_year, traditional_price), xytext=(intersection_year + 1, traditional_price * 1.5), arrowprops=arrow_props)
 
     plt.legend()
-
-    # Set the background color of the plot to black
-    fig.set_facecolor('black')
-
     plt.show()  # Show the plot
 
 
