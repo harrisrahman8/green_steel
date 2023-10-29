@@ -135,12 +135,12 @@ def calculate_steel_production_costs(
     # Set arrow color to white for all annotations
     arrow_props = dict(arrowstyle='->', color='white')
 
-    plt.annotate(f'Required Subsidy: £{round(subsidy, 4)}/ton', xy=(target_tipping_year, costs_per_ton[target_tipping_year]), xytext=(target_tipping_year + 1, costs_per_ton[target_tipping_year] * 1.5), arrowprops=dict(arrowstyle='->'))
+    plt.annotate(f'Required Subsidy: £{round(subsidy, 4)}/ton', xy=(target_tipping_year, costs_per_ton[target_tipping_year]), xytext=(target_tipping_year + 1, costs_per_ton[target_tipping_year] * 1.5), arrowprops=arrow_props))
     # only one line may be specified; ymin & ymax specified as a percentage of y-range
     plt.axvline(x=target_tipping_year, ymin=traditional_price, ymax=costs_per_ton[target_tipping_year], color='green', ls='--', label='subsidy')
 
     if intersection_year is not None:
-        plt.annotate(f'Tipping Calendar Year: {intersection_year}', xy=(intersection_year, traditional_price), xytext=(intersection_year + 1, traditional_price * 1.5), arrowprops=dict(arrowstyle='->'))
+        plt.annotate(f'Tipping Calendar Year: {intersection_year}', xy=(intersection_year, traditional_price), xytext=(intersection_year + 1, traditional_price * 1.5), arrowprops=arrow_props))
 
     plt.legend()
     st.pyplot(plt)
