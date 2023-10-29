@@ -121,7 +121,7 @@ def calculate_steel_production_costs(
     # Set the background color to black
     # Create a black background figure
     fig = plt.figure()
-    fig.patch.set_facecolor('black')
+    fig.set_facecolor('black')
 
     # Set the text color to white
     plt.rcParams['text.color'] = 'white'
@@ -152,7 +152,7 @@ def calculate_steel_production_costs(
     plt.legend()
 
     # Set the background color of the plot to black
-    fig.patch.set_facecolor('black')
+    fig.set_facecolor('black')
 
     plt.show()  # Show the plot
 
