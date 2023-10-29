@@ -132,6 +132,8 @@ def calculate_steel_production_costs(
     plt.ylabel('Costs per Ton')
     plt.title(f'Cost per Ton of Steel Production Over Time (with target tipping point in year {target_tipping_year} and required subsidy)', fontproperties=font)
     
+    # Set arrow color to white for all annotations
+    arrow_props = dict(arrowstyle='->', color='white')
 
     plt.annotate(f'Required Subsidy: £{round(subsidy, 4)}/ton', xy=(target_tipping_year, costs_per_ton[target_tipping_year]), xytext=(target_tipping_year + 1, costs_per_ton[target_tipping_year] * 1.5), arrowprops=dict(arrowstyle='->'))
     # only one line may be specified; ymin & ymax specified as a percentage of y-range
