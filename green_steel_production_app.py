@@ -206,8 +206,9 @@ if base_hydrogen_units and base_electricity_units and base_carbon_units and base
         'traditional_price': traditional_price,
         'target_tipping_year': target_tipping_year,
     }
-    calculate_steel_production_costs(**parameters)
+    plot = calculate_steel_production_costs(**parameters)
 
     # Add an explanation paragraph
     st.markdown("## Explanation")
     st.write("This chart shows the cost per ton of steel production over time. The dashed line represents the traditional price, and the green dashed line indicates the subsidy required.")
+    st.pyplot(plot)
