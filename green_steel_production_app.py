@@ -1,5 +1,6 @@
 import streamlit as st
 import matplotlib.pyplot as plt
+from matplotlib.font_manager import FontProperties
 import numpy as np
 import plotly.express as px
 import pandas as pd
@@ -112,70 +113,35 @@ def calculate_steel_production_costs(
 
     subsidy = costs_per_ton[target_tipping_year] - traditional_price
     
-    # Calculate your data here
-    years = list(range(years))
-    # Create a DataFrame with the results
-    df = pd.DataFrame({
-        'Year': years,
-        'Traditional Price': [traditional_price] * len(years),
-        'Cost per Ton': costs_per_ton
-    })
 
-    ######
-    # Plotly Code
-    ######
 
-    # Create a Plotly Express line chart
-    fig = px.line(df, x='Year', y=['Traditional Price', 'Cost per Ton'],
-                  labels={'Year': 'Years', 'value': 'Cost (£/ton)'})
-
-    fig.update_traces(line=dict(width=2))  # Customize the line width
-    fig.update_xaxes(showgrid=False)  # Hide the gridlines on the x-axis
-    fig.update_yaxes(showgrid=False)  # Hide the gridlines on the y-axis
-    fig.update_layout(
-        title=f'Cost per Ton of Steel Production Over Time (with target tipping point in year {target_tipping_year} and required subsidy)',
-        paper_bgcolor='black',  # Set the plot area background color to black
-        font=dict(color='white'),  # Set text color to white
-        legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1),
-    )
-
-    # Add annotations
-    subsidy = costs_per_ton[target_tipping_year] - traditional_price
-    fig.add_annotation(
-        text=f'Required Subsidy: £{round(subsidy, 4)}/ton',
-        x=target_tipping_year, y=costs_per_ton[target_tipping_year],
-        xshift=20, yshift=10,
-        arrowhead=2, arrowwidth=2, arrowcolor='green',
-        showarrow=True,
-    )
-
-    # Highlight the target tipping year
-    fig.add_vline(x=target_tipping_year, line_dash='dash', line_color='green', name='Subsidy')
-
-    # Display the Plotly Express chart in Streamlit
-    st.plotly_chart(fig)
-
-    ######
+    #####
     # Matplotlib Code
-    ######
+    #####
+    # Set the background color to black
+    plt.rcParams['axes.facecolor'] = 'black'
+    # Set the text color to white
+    plt.rcParams['text.color'] = 'white'
+    # Change the font to Garamond
+    font = FontProperties(family='Garamond')
 
-    # plt.plot(range(years), [traditional_price] * years, linestyle='--', label='Traditional Price')
-    # plt.plot(range(years), costs_per_ton, label='Cost per Ton')
-    # plt.ylim(0, 1)  # Set the y-axis minimum to 0
-    # plt.xlabel('Years')
-    # plt.ylabel('Costs per Ton')
-    # plt.title(f'Cost per Ton of Steel Production Over Time (with target tipping point in year {target_tipping_year} and required subsidy)')
+    plt.plot(range(years), [traditional_price] * years, linestyle='--', label='Traditional Price')
+    plt.plot(range(years), costs_per_ton, label='Cost per Ton')
+    plt.ylim(0, 1)  # Set the y-axis minimum to 0
+    plt.xlabel('Years')
+    plt.ylabel('Costs per Ton')
+    plt.title(f'Cost per Ton of Steel Production Over Time (with target tipping point in year {target_tipping_year} and required subsidy)', fontproperties=font)
     
 
-    # plt.annotate(f'Required Subsidy: £{round(subsidy, 4)}/ton', xy=(target_tipping_year, costs_per_ton[target_tipping_year]), xytext=(target_tipping_year + 1, costs_per_ton[target_tipping_year] * 1.5), arrowprops=dict(arrowstyle='->'))
-    # # only one line may be specified; ymin & ymax specified as a percentage of y-range
-    # plt.axvline(x=target_tipping_year, ymin=traditional_price, ymax=costs_per_ton[target_tipping_year], color='green', ls='--', label='subsidy')
+    plt.annotate(f'Required Subsidy: £{round(subsidy, 4)}/ton', xy=(target_tipping_year, costs_per_ton[target_tipping_year]), xytext=(target_tipping_year + 1, costs_per_ton[target_tipping_year] * 1.5), arrowprops=dict(arrowstyle='->'))
+    # only one line may be specified; ymin & ymax specified as a percentage of y-range
+    plt.axvline(x=target_tipping_year, ymin=traditional_price, ymax=costs_per_ton[target_tipping_year], color='green', ls='--', label='subsidy')
 
-    # if intersection_year is not None:
-    #     plt.annotate(f'Tipping Calendar Year: {intersection_year}', xy=(intersection_year, traditional_price), xytext=(intersection_year + 1, traditional_price * 1.5), arrowprops=dict(arrowstyle='->'))
+    if intersection_year is not None:
+        plt.annotate(f'Tipping Calendar Year: {intersection_year}', xy=(intersection_year, traditional_price), xytext=(intersection_year + 1, traditional_price * 1.5), arrowprops=dict(arrowstyle='->'))
 
-    # plt.legend()
-    # st.pyplot(plt)
+    plt.legend()
+    st.pyplot(plt)
 
 # Streamlit UI
 st.title("Steel Production Cost Calculator")
