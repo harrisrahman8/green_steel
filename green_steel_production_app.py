@@ -120,36 +120,37 @@ def calculate_steel_production_costs(
     #####
     # Set the background color to black
     # Create a black background figure
-    fig = plt.figure(facecolor='black')
-    
+    fig = plt.figure()
+    fig.patch.set_facecolor('black')
+
     # Set the text color to white
     plt.rcParams['text.color'] = 'white'
-    
+
     # Change the font to Garamond
     font = FontProperties(family='Garamond')
-    
+
     plt.plot(range(years), [traditional_price] * years, linestyle='--', label='Traditional Price')
     plt.plot(range(years), costs_per_ton, label='Cost per Ton')
     plt.ylim(0, 1)  # Set the y-axis minimum to 0
     plt.xlabel('Years', fontproperties=font)
     plt.ylabel('Costs per Ton', fontproperties=font)
     plt.title(f'Cost per Ton of Steel Production Over Time (with target tipping point in year {target_tipping_year} and required subsidy)', fontproperties=font)
-    
+
     # Set arrow color to white for all annotations
     arrow_props = dict(arrowstyle='->', color='white')
-    
+
     plt.annotate(f'Required Subsidy: £{round(subsidy, 4)}/ton', xy=(target_tipping_year, costs_per_ton[target_tipping_year]), xytext=(target_tipping_year + 1, costs_per_ton[target_tipping_year] * 1.5), arrowprops=arrow_props)
     # only one line may be specified; ymin & ymax specified as a percentage of y-range
     plt.axvline(x=target_tipping_year, ymin=traditional_price, ymax=costs_per_ton[target_tipping_year], color='green', ls='--', label='subsidy')
-    
+
     if intersection_year is not None:
         plt.annotate(f'Tipping Calendar Year: {intersection_year}', xy=(intersection_year, traditional_price), xytext=(intersection_year + 1, traditional_price * 1.5), arrowprops=arrow_props)
-    
+
     plt.legend()
-    
+
     # Set the background color of the plot to black
     fig.patch.set_facecolor('black')
-    
+
     plt.show()  # Show the plot
 
 
