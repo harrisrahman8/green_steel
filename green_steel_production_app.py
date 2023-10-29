@@ -134,6 +134,9 @@ def calculate_steel_production_costs(
     plt.ylim(0, 1)  # Set the y-axis minimum to 0
     plt.xlabel('Years', fontproperties=font)
     plt.ylabel('Costs per Ton', fontproperties=font)
+    # Apply Garamond font to the title and annotations
+    title_font = {'family': 'Garamond', 'color':  'white', 'weight': 'bold', 'size': 16}
+    subtitle_font = {'family': 'Garamond', 'color':  'white', 'size': 12}
     plt.title(f'Cost per Ton of Steel Production Over Time (with target tipping point in year {target_tipping_year} and required subsidy)', fontproperties=font)
 
     # Set arrow color to white for all annotations
