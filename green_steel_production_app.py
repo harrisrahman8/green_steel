@@ -1,9 +1,9 @@
 import streamlit as st
 import matplotlib.pyplot as plt
-from matplotlib.font_manager import FontProperties
 import numpy as np
 import plotly.express as px
 import pandas as pd
+from streamlit import info as st_info
 
 # Define the function for steel production cost calculation
 def calculate_steel_production_costs(
@@ -113,56 +113,86 @@ def calculate_steel_production_costs(
 
     subsidy = costs_per_ton[target_tipping_year] - traditional_price
     
-
-
     #####
     # Matplotlib Code
     #####
     # Set the background color to black
-    # Create a black background figure
-    fig = plt.figure()
-    fig.set_facecolor('black')
-
+    plt.rcParams['axes.facecolor'] = 'black'
     # Set the text color to white
     plt.rcParams['text.color'] = 'white'
-
-    # Change the font to Garamond
-    font = FontProperties(family='Garamond')
-
+    
     plt.plot(range(years), [traditional_price] * years, linestyle='--', label='Traditional Price')
     plt.plot(range(years), costs_per_ton, label='Cost per Ton')
-    plt.ylim(0, 1)  # Set the y-axis minimum to 0
-    plt.xlabel('Years', fontproperties=font)
-    plt.ylabel('Costs per Ton', fontproperties=font)
-    # Apply Garamond font to the title and annotations
-    title_font = {'family': 'Garamond', 'color':  'white', 'weight': 'bold', 'size': 16}
-    subtitle_font = {'family': 'Garamond', 'color':  'white', 'size': 12}
-    plt.title(f'Cost per Ton of Steel Production Over Time (with target tipping point in year {target_tipping_year} and required subsidy)', fontproperties=font)
-
+    min_value = min(costs_per_ton) - 0.1  # Subtract a small value for some padding
+    max_value = max(costs_per_ton) + 0.1  # Add a small value for some padding
+    plt.ylim(min_value, max_value)
+    # plt.ylim(0, 1)  # Set the y-axis minimum to 0
+    plt.xlabel('Years')
+    plt.ylabel('Costs per Ton')
+    plt.title(f'Cost per Ton of Steel Production Over Time (with target tipping point in year {target_tipping_year} and required subsidy)')
+    
     # Set arrow color to white for all annotations
     arrow_props = dict(arrowstyle='->', color='white')
-
-    plt.annotate(f'Required Subsidy: £{round(subsidy, 4)}/ton', xy=(target_tipping_year, costs_per_ton[target_tipping_year]), xytext=(target_tipping_year + 1, costs_per_ton[target_tipping_year] * 1.5), arrowprops=arrow_props)
+    
+    plt.annotate(f'Required Subsidy: £{round(subsidy, 4)}/ton', xy=(target_tipping_year, costs_per_ton[target_tipping_year]), xytext=(target_tipping_year + 1, costs_per_ton[target_tipping_year] ), arrowprops=arrow_props)
     # only one line may be specified; ymin & ymax specified as a percentage of y-range
-    plt.axvline(x=target_tipping_year, ymin=traditional_price, ymax=costs_per_ton[target_tipping_year], color='green', ls='--', label='subsidy')
-
+    plt.axvline(x=target_tipping_year, ymin=traditional_price, ymax=costs_per_ton[target_tipping_year - 1], color='green', ls='--', label='subsidy')
+    
     if intersection_year is not None:
         plt.annotate(f'Tipping Calendar Year: {intersection_year}', xy=(intersection_year, traditional_price), xytext=(intersection_year + 1, traditional_price * 1.5), arrowprops=arrow_props)
-
+    
     plt.legend()
-    plt.show()  # Show the plot
+    st.pyplot(plt)
 
 
 # Streamlit UI
 st.title("Steel Production Cost Calculator")
 
-st.sidebar.header("Input Parameters")
+st.markdown(
+    """
+    *This is a simplified and interactive cost-competitivity model for green steel production.*
+    
+    Enter your input parameters in the sidebar,
+    and the dynamic chart will display the cost per ton of steel production over time and the required subsidy to meet competitive cost levels. 
+    
+    - [Model Overview](#model-overview)
+    - [Use Cases & Limitations](#use-cases-and-limitations)
+    - [Input Parameter Explanations](#input-parameter-explanations)
 
+    --- 
+    """
+)
+
+st.sidebar.header("**Input Parameters**")
+st.sidebar.write(
+    """
+    These parameters are for toggling and the cost model chart will change dynamically.
+
+    *For explanations of input parameters please find Section 3 below graph.*
+    """
+)
+
+st.sidebar.markdown("&nbsp;")
+st.sidebar.write("### **Waste Efficiency YoY Targets**")
+target_efficiency_hydrogen = st.sidebar.slider("Target Efficiency Hydrogen (%)", 0.0, 1.0, 0.2)
+target_efficiency_electricity = st.sidebar.slider("Target Efficiency Electricity (%)", 0.0, 1.0, 0.29)
+target_efficiency_carbon = st.sidebar.slider("Target Efficiency Carbon (%)", 0.0, 1.0, 0.4)
+target_efficiency_labour = st.sidebar.slider("Target Efficiency Labour (%)", 0.0, 1.0, 0.2)
+# Add a gap above the "Base Year Values" title
+st.sidebar.markdown("&nbsp;")
+st.sidebar.write("### **Base Year Efficiency Values**")
+raw_material_utilisation = st.sidebar.slider("Raw Material Utilisation (%)", 0.0, 1.0, 0.2)
+operational_labour_efficiency = st.sidebar.slider("Operational Labour Efficiency (%)", 0.0, 1.0, 0.3)
+st.sidebar.markdown("&nbsp;")
+st.sidebar.write("### **Base Year Input Costs**")
 base_other_costs = st.sidebar.number_input("Base Other Costs (£)", value=100)
 base_hydrogen_units = st.sidebar.number_input("Base Hydrogen Units (kg)", value=20)
 base_electricity_units = st.sidebar.number_input("Base Electricity Units (kWh)", value=10)
 base_carbon_units = st.sidebar.number_input("Base Carbon Units (kg)", value=10)
 base_labour_units = st.sidebar.number_input("Base Labour Units (hours)", value=5)
+# Add a gap above the "Exogenous Price Projections" title
+st.sidebar.markdown("&nbsp;")
+st.sidebar.write("### **Exogenous Price Projections**")
 hydrogen_prices = st.sidebar.text_area("Hydrogen Prices (£/kg) separated by comma", "10,9,9,8,8,8,8,8,8,8")
 hydrogen_prices = [float(price) for price in hydrogen_prices.split(",")]
 electricity_prices = st.sidebar.text_area("Electricity Prices (£/kWh) separated by comma", "15,15,13,13,14,14,13,13,13,13")
@@ -173,12 +203,6 @@ labour_prices = st.sidebar.text_area("Labour Prices (£/hour) separated by comma
 labour_prices = [float(price) for price in labour_prices.split(",")]
 fixed_production = st.sidebar.number_input("Fixed Production (tons)", value=1000)
 years = st.sidebar.number_input("Number of Years", value=10)
-raw_material_utilisation = st.sidebar.slider("Raw Material Utilisation (%)", 0.0, 1.0, 0.2)
-operational_labour_efficiency = st.sidebar.slider("Operational Labour Efficiency (%)", 0.0, 1.0, 0.3)
-target_efficiency_hydrogen = st.sidebar.slider("Target Efficiency Hydrogen (%)", 0.0, 1.0, 0.2)
-target_efficiency_electricity = st.sidebar.slider("Target Efficiency Electricity (%)", 0.0, 1.0, 0.29)
-target_efficiency_carbon = st.sidebar.slider("Target Efficiency Carbon (%)", 0.0, 1.0, 0.4)
-target_efficiency_labour = st.sidebar.slider("Target Efficiency Labour (%)", 0.0, 1.0, 0.2)
 traditional_price = st.sidebar.number_input("Traditional Price (£/ton)", value=0.3)
 target_tipping_year = st.sidebar.number_input("Target Tipping Year", value=1)
 
@@ -206,9 +230,20 @@ if base_hydrogen_units and base_electricity_units and base_carbon_units and base
         'traditional_price': traditional_price,
         'target_tipping_year': target_tipping_year,
     }
-    plot = calculate_steel_production_costs(**parameters)
+    calculate_steel_production_costs(**parameters)
 
-    # Add an explanation paragraph
-    st.markdown("## Explanation")
-    st.write("This chart shows the cost per ton of steel production over time. The dashed line represents the traditional price, and the green dashed line indicates the subsidy required.")
-    st.pyplot(plot)
+    st.write("This is a Steel Production Cost Calculator. Enter your input parameters in the sidebar, and the app will calculate and display the cost per ton of steel production over time.")
+
+    st.markdown(
+        """
+        ## Model Overview
+        This section provides an overview of the model.
+
+        ## Use Cases & Limitations
+        Here, you'll find information about use cases and limitations.
+
+        ## Input Parameter Explanations
+        Detailed explanations of input parameters.
+
+        """
+    )
