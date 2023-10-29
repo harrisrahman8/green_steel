@@ -119,7 +119,8 @@ def calculate_steel_production_costs(
     # Matplotlib Code
     #####
     # Set the background color to black
-    plt.rcParams['axes.facecolor'] = 'black'
+    # Create a black background figure
+    fig = plt.figure(facecolor='black')
     
     # Set the text color to white
     plt.rcParams['text.color'] = 'white'
@@ -145,7 +146,11 @@ def calculate_steel_production_costs(
         plt.annotate(f'Tipping Calendar Year: {intersection_year}', xy=(intersection_year, traditional_price), xytext=(intersection_year + 1, traditional_price * 1.5), arrowprops=arrow_props)
     
     plt.legend()
-    st.pyplot(plt)
+    
+    # Set the background color of the plot to black
+    fig.patch.set_facecolor('black')
+    
+    plt.show()  # Show the plot
 
 
 # Streamlit UI
