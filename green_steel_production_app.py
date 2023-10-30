@@ -16,7 +16,6 @@ def calculate_steel_production_costs(
     electricity_prices,
     carbon_prices,
     labour_prices, 
-    fixed_production, 
     years, 
     raw_material_utilisation, 
     operational_labour_efficiency, 
@@ -28,6 +27,7 @@ def calculate_steel_production_costs(
     target_tipping_year,
     ):
     
+    fixed_production = 1000
     # calculate base costs
     base_hydrogen_costs = base_hydrogen_units * hydrogen_prices[0]
     base_electricity_costs = base_electricity_units * electricity_prices[0]
@@ -148,6 +148,9 @@ def calculate_steel_production_costs(
 # Streamlit UI
 st.title("Green Steel Production Cost Calculator")
 
+st.warning("This is a quick version made in less than 48 hours, full debugging and development still needs to happen.")
+
+
 st.markdown(
     """
     *This is a simplified and interactive cost-competitivity model for green steel production. (**Note: Default data is populated with mock data**).*
@@ -169,6 +172,8 @@ st.sidebar.write(
     These parameters are for toggling and the cost model chart will change dynamically.
 
     *For explanations of input parameters please find Section 3 below graph.*
+
+    **Note:** The number of years in the model can only be as long as the length of each "exogenous price projection series".
     """
 )
 
@@ -185,6 +190,7 @@ raw_material_utilisation = st.sidebar.slider("Raw Material Utilisation (%)", 0.0
 operational_labour_efficiency = st.sidebar.slider("Operational Labour Efficiency (%)", 0.0, 1.0, 0.3)
 st.sidebar.markdown("&nbsp;")
 st.sidebar.write("### **Base Year Input Values**")
+st.sidebar.write("These values are to produce 1 ton of Green Steel")
 base_other_costs = st.sidebar.number_input("Base Other Costs (£)", value=100)
 base_hydrogen_units = st.sidebar.number_input("Base Hydrogen Units (kg)", value=20)
 base_electricity_units = st.sidebar.number_input("Base Electricity Units (kWh)", value=10)
@@ -201,7 +207,8 @@ carbon_prices = st.sidebar.text_area("Carbon Prices (£/kg) separated by comma",
 carbon_prices = [float(price) for price in carbon_prices.split(",")]
 labour_prices = st.sidebar.text_area("Labour Prices (£/hour) separated by comma", "16,17,18,18,18,20,20,20,20,22")
 labour_prices = [float(price) for price in labour_prices.split(",")]
-fixed_production = st.sidebar.number_input("Fixed Production (tons)", value=1000)
+st.sidebar.markdown("&nbsp;")
+st.sidebar.write("### **Model Calibration**")
 years = st.sidebar.number_input("Number of Years", value=10)
 traditional_price = st.sidebar.number_input("Traditional Price (£/ton)", value=0.3)
 target_tipping_year = st.sidebar.number_input("Target Tipping Year", value=1)
@@ -219,7 +226,6 @@ if base_hydrogen_units and base_electricity_units and base_carbon_units and base
         'electricity_prices': electricity_prices,
         'carbon_prices': carbon_prices,
         'labour_prices': labour_prices,
-        'fixed_production': fixed_production,
         'years': years,
         'raw_material_utilisation': raw_material_utilisation,
         'operational_labour_efficiency': operational_labour_efficiency,
@@ -276,5 +282,88 @@ if base_hydrogen_units and base_electricity_units and base_carbon_units and base
         ## Input Parameter Explanations
         Detailed explanations of input parameters.
 
+        - **Base Year Input Values**
+        *Each Input is the amount required per ton of steel in the base year.*
+            
+            - Base Other Costs
+            Definition: These are the fixed costs of production 
+            Assumption: These fixed costs don't have wasted resources that can be diminished.
+            Limitation: There can be efficiencies, eg take space efficiency of manufacture, which would make land more efficiently used.
+
+            - Base Hydrogen Units
+            Definition: This is the required amount of hydrogen needed to be produced for steel in the base year.
+            Assumption: Perhaps the handling of hydrogen and the technology doesn't allow for all hydrogen to be used.        
+
+            - Base Electricity Units
+            Definition: This is the required amount of electricity needed to be produced for steel in the base year.
+            Assumption: Perhaps the handling of electricity and the technology doesn't allow for all electricity to be used.
+        
+            - Base Carbon Units
+            Definition: This is the required amount of carbon needed to be produced for steel in the base year.
+            Assumption: Perhaps the handling of carbon and the technology doesn't allow for all carbon to be used.
+        
+            - Base Labour Units
+            Definition: This is the required amount of labour needed to be produced for steel in the base year.
+            Assumption: Given the new technology, perhaps labour on average is still inexperienced, meaning that there is wasted labour resource units being spent for instance 'figuring out what to do'.
+        
+        - **Base Year Efficiency Values**
+        *This set of input parameters defines how efficiently the the inputs of production are initially used. 
+        Consequently, this defines the amount of wasted resource units in each production period that needs to be diminished, achieving economies of scale.
+        Wasted resource units converge to zero with target YoY efficiency gains form 'Waste Efficiency YoY Targets'*.
+            
+            - Raw Material Utilisation
+            Definition: How much the raw materials are being used going into the production process. 
+            This can be thought of as the mass of the physical inputs divided by the mass of the output.
+            This metric applies to hydrogen, electricity, carbon and iron ore.
+            Assumption: Efficiency gains are homogenous across the raw material input set.
+            Limitation: Efficiency gains are definitely not homogenous across the raw material input set, but this assumption was made for version 1 of this simple model.
+        
+            - Operational Labour Efficiency
+            Definition: This parameter is defined as the relationship between 'the average labour units required for producing a ton of steel in the base year' 
+            and the optimum amount of labour units required. 
+
+        - **Waste Efficiency YoY Targets**
+        *These parameters define the rate at which the wasted resource units diminish over time.*
+            
+            - Target Efficiency Hydrogen
+            Definition: This is the YoY rate that wasted hydrogen diminishes.
+
+            - Target Efficiency Electricity
+            Definition: This is the YoY rate that wasted electricity diminishes.
+
+            - Target Efficiency Carbon
+            Definition: This is the YoY rate that wasted carbon diminishes.
+
+            - Target Efficiency Labour
+            Definition: This is the YoY rate that wasted labour diminishes.
+
+        - **Exogenous Price Projections**
+        *Each price series can be changed to conduct scenario analysis.
+        Note that each series has to be the same length of the number of years calibrated by the model.*
+            
+            - Hydrogen Prices
+            Definition: The price movements of hydrogen
+
+            - Electricity Prices
+            Definition: The price movements of electricity.
+
+            - Carbon Prices
+            Definition: The price movements of carbon.
+
+            - Labour Prices
+            Definition: The price movements of average wages.
+
+        - **Model Calibration**
+        *This sets the projection of the model, the traditional price benchmark (that defines cost competitivity), 
+        and the target tipping year (which defines the required government subsidy to support the targeted cost competitivity)
+
+            - Number of Years
+            Definition: The number of years for the projection. This must be the same or less than each of the lengths of the exogenous price projection series.
+
+            - Tradition Price
+            Definition: This defines the cost competitivity benchmark. This can be the international price of Steel or that which is produced by the country.
+            Assumption: This model assumes that steel producers are price takers not price setters, and that the international steel price doesn't move.
+            Limitation: This is a very broad assumption used for model simplification in version 1.
+        
         """
     )
