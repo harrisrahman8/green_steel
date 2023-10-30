@@ -146,11 +146,11 @@ def calculate_steel_production_costs(
 
 
 # Streamlit UI
-st.title("Steel Production Cost Calculator")
+st.title("Green Steel Production Cost Calculator")
 
 st.markdown(
     """
-    *This is a simplified and interactive cost-competitivity model for green steel production.*
+    *This is a simplified and interactive cost-competitivity model for green steel production. (**Note: Default data is populated with mock data**).*
     
     Enter your input parameters in the sidebar,
     and the dynamic chart will display the cost per ton of steel production over time and the required subsidy to meet competitive cost levels. 
@@ -184,7 +184,7 @@ st.sidebar.write("### **Base Year Efficiency Values**")
 raw_material_utilisation = st.sidebar.slider("Raw Material Utilisation (%)", 0.0, 1.0, 0.2)
 operational_labour_efficiency = st.sidebar.slider("Operational Labour Efficiency (%)", 0.0, 1.0, 0.3)
 st.sidebar.markdown("&nbsp;")
-st.sidebar.write("### **Base Year Input Costs**")
+st.sidebar.write("### **Base Year Input Values**")
 base_other_costs = st.sidebar.number_input("Base Other Costs (£)", value=100)
 base_hydrogen_units = st.sidebar.number_input("Base Hydrogen Units (kg)", value=20)
 base_electricity_units = st.sidebar.number_input("Base Electricity Units (kWh)", value=10)
@@ -237,10 +237,41 @@ if base_hydrogen_units and base_electricity_units and base_carbon_units and base
     st.markdown(
         """
         ## Model Overview
-        This section provides an overview of the model.
+        **Purpose**: This is a simplified model to assist the conception of a mental model and guide scenario analysis to understand the compeitivity of a green steel industry 
+        (e.g by changing the input price projections in the sidebar).
 
+        **Model Framework**: Economies of scale is essentially *'cheaper costs per unit of output produced'*.
+        Production can be viewed as a function of labour and capital. Technology and learning-by-doing can increase efficiency of production.
+        
+        An example can illustrate this:
+        
+        Initially a labour, in period one, utilises capital inefficiently due to lack of experience using the technology. 
+        This lowers the physical capital utilisation rate during the period but after each period, 
+        their efficieny improves with diminishing returns. Note that efficiency isn't applied across the 'work' but should be viewed as shortening the 'wasted time'.
+
+        There is a starting value for the **resource units** (defined as 'base year efficiency value').
+        There is an efficiency rate that is either targetted by management or organically materialised - diminishing all wasted **resource units** (defined as 'Waste Efficiency YoY Targets').
+        The costs of inputs is calculated as the multiplication of the resource units and their respective prices in that period (defined as 'Exogenous Price Projections').
+
+
+        
         ## Use Cases & Limitations
-        Here, you'll find information about use cases and limitations.
+        *Inputting the price projections allows for preliminary scenario planning.*
+
+        **Use Cases**
+        
+        The helps answer the following questions:
+
+        - *Which key drivers have the most contribution to achieving economies of scale?*
+        
+        - *When does green steel become cost competitive?*
+        
+        - *How much would the government need to subsidise in a target year, if technology wasn't yet cost competitive?*
+        
+        - *How does the cost curve change given different sets of hydrogen and electricity prices*
+
+        - *Given the base value of efficiencies for different resource inputs, what efficiency rates (for diminishing wasted resources units) should be targetted?*
+
 
         ## Input Parameter Explanations
         Detailed explanations of input parameters.
