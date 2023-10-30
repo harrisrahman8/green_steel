@@ -9,11 +9,13 @@ from streamlit import info as st_info
 def calculate_steel_production_costs(
     base_other_costs, 
     base_hydrogen_units, 
-    base_electricity_units, 
+    base_electricity_units,
+    base_ironore_units,
     base_carbon_units, 
     base_labour_units,
     hydrogen_prices,
     electricity_prices,
+    ironore_prices,
     carbon_prices,
     labour_prices, 
     years, 
@@ -21,6 +23,7 @@ def calculate_steel_production_costs(
     operational_labour_efficiency, 
     target_efficiency_hydrogen, 
     target_efficiency_electricity, 
+    target_efficiency_ironore,
     target_efficiency_carbon, 
     target_efficiency_labour, 
     traditional_price,
@@ -31,6 +34,7 @@ def calculate_steel_production_costs(
     # calculate base costs
     base_hydrogen_costs = base_hydrogen_units * hydrogen_prices[0]
     base_electricity_costs = base_electricity_units * electricity_prices[0]
+    base_ironore_costs = base_ironore_units * ironore_prices[0]
     base_carbon_costs = base_carbon_units * carbon_prices[0]
     base_labour_costs = base_labour_units * labour_prices[0]
     
@@ -38,6 +42,7 @@ def calculate_steel_production_costs(
     other_costs_projection = [base_other_costs]
     hydrogen_costs_projection = [base_hydrogen_costs]
     electricity_costs_projection = [base_electricity_costs]
+    ironore_costs_projection = [base_ironore_costs]
     carbon_costs_projection = [base_carbon_costs]
     labour_costs_projection = [base_labour_costs]
 
@@ -48,6 +53,7 @@ def calculate_steel_production_costs(
 
     base_wasted_hydrogen_units = base_hydrogen_units * (1 - raw_material_utilisation)
     base_wasted_electricity_units = base_electricity_units * (1 - raw_material_utilisation)
+    base_wasted_ironore_units = base_ironore_units * (1 - raw_material_utilisation)
     base_wasted_carbon_units = base_carbon_units * (1 - raw_material_utilisation)
     base_wasted_labour_units = base_labour_units * (1 - operational_labour_efficiency)
 
@@ -60,6 +66,7 @@ def calculate_steel_production_costs(
                 other_costs_projection[i]
                 + hydrogen_costs_projection[i]
                 + electricity_costs_projection[i]
+                + ironore_costs_projection[i]
                 + carbon_costs_projection[i]
                 + labour_costs_projection[i]
             )
@@ -82,6 +89,12 @@ def calculate_steel_production_costs(
             electricity_costs_calculated = electricity_units_calculated * electricity_prices[i]
             electricity_costs_projection.append(electricity_costs_calculated)
 
+            wasted_ironore_units = base_wasted_ironore_units * (1 - target_efficiency_ironore) ** i
+            ironore_savings_units = base_wasted_ironore_units - wasted_ironore_units
+            ironore_units_calculated = base_ironore_units - ironore_savings_units
+            ironore_costs_calculated = ironore_units_calculated * ironore_prices[i]
+            ironore_costs_projection.append(ironore_costs_calculated)
+
             wasted_carbon_units = base_wasted_carbon_units * (1 - target_efficiency_carbon) ** i
             carbon_savings_units = base_wasted_carbon_units - wasted_carbon_units
             carbon_units_calculated = base_carbon_units - carbon_savings_units
@@ -98,6 +111,7 @@ def calculate_steel_production_costs(
                 base_other_costs
                 + hydrogen_costs_projection[i]
                 + electricity_costs_projection[i]
+                + ironore_costs_projection[i]
                 + carbon_costs_projection[i]
                 + labour_costs_projection[i]
             )
@@ -148,7 +162,12 @@ def calculate_steel_production_costs(
 # Streamlit UI
 st.title("Green Steel Production Cost Calculator")
 
-st.warning("This is a quick version made in less than 48 hours, full debugging and development still needs to happen.")
+st.warning(
+    """
+    1) This is a quick version made in less than 48 hours, full debugging and development still needs to happen.
+
+    2) Default data is populated with mock data. Default data can soon be actual averages observed.    
+    """)
 
 
 st.markdown(
@@ -181,6 +200,7 @@ st.sidebar.markdown("&nbsp;")
 st.sidebar.write("### **Waste Efficiency YoY Targets**")
 target_efficiency_hydrogen = st.sidebar.slider("Target Efficiency Hydrogen (%)", 0.0, 1.0, 0.2)
 target_efficiency_electricity = st.sidebar.slider("Target Efficiency Electricity (%)", 0.0, 1.0, 0.29)
+target_efficiency_ironore = st.sidebar.slider("Target Efficiency Iron Ore (%)", 0.0, 1.0, 0.4)
 target_efficiency_carbon = st.sidebar.slider("Target Efficiency Carbon (%)", 0.0, 1.0, 0.4)
 target_efficiency_labour = st.sidebar.slider("Target Efficiency Labour (%)", 0.0, 1.0, 0.2)
 # Add a gap above the "Base Year Values" title
@@ -192,9 +212,10 @@ st.sidebar.markdown("&nbsp;")
 st.sidebar.write("### **Base Year Input Values**")
 st.sidebar.write("These values are to produce 1 ton of Green Steel")
 base_other_costs = st.sidebar.number_input("Base Other Costs (£)", value=100)
-base_hydrogen_units = st.sidebar.number_input("Base Hydrogen Units (kg)", value=20)
+base_hydrogen_units = st.sidebar.number_input("Base Hydrogen Units (00's kg)", value=20)
 base_electricity_units = st.sidebar.number_input("Base Electricity Units (kWh)", value=10)
-base_carbon_units = st.sidebar.number_input("Base Carbon Units (kg)", value=10)
+base_ironore_units = st.sidebar.number_input("Base Iron Ore Units (00's kg)", value=5)
+base_carbon_units = st.sidebar.number_input("Base Carbon Units (00's kg)", value=10)
 base_labour_units = st.sidebar.number_input("Base Labour Units (hours)", value=5)
 # Add a gap above the "Exogenous Price Projections" title
 st.sidebar.markdown("&nbsp;")
@@ -203,6 +224,8 @@ hydrogen_prices = st.sidebar.text_area("Hydrogen Prices (£/kg) separated by com
 hydrogen_prices = [float(price) for price in hydrogen_prices.split(",")]
 electricity_prices = st.sidebar.text_area("Electricity Prices (£/kWh) separated by comma", "15,15,13,13,14,14,13,13,13,13")
 electricity_prices = [float(price) for price in electricity_prices.split(",")]
+ironore_prices = st.sidebar.text_area("Iron Ore Prices (£/kg) separated by comma", "4,4,5,5,6,4,3,4,3,3")
+ironore_prices = [float(price) for price in ironore_prices.split(",")]
 carbon_prices = st.sidebar.text_area("Carbon Prices (£/kg) separated by comma", "7,8,8,8,9,9,9,9,9,9")
 carbon_prices = [float(price) for price in carbon_prices.split(",")]
 labour_prices = st.sidebar.text_area("Labour Prices (£/hour) separated by comma", "16,17,18,18,18,20,20,20,20,22")
@@ -220,10 +243,12 @@ if base_hydrogen_units and base_electricity_units and base_carbon_units and base
         'base_other_costs': base_other_costs,
         'base_hydrogen_units': base_hydrogen_units,
         'base_electricity_units': base_electricity_units,
+        'base_ironore_units': base_ironore_units,
         'base_carbon_units': base_carbon_units,
         'base_labour_units': base_labour_units,
         'hydrogen_prices': hydrogen_prices,
         'electricity_prices': electricity_prices,
+        'ironore_prices': ironore_prices,
         'carbon_prices': carbon_prices,
         'labour_prices': labour_prices,
         'years': years,
@@ -231,6 +256,7 @@ if base_hydrogen_units and base_electricity_units and base_carbon_units and base
         'operational_labour_efficiency': operational_labour_efficiency,
         'target_efficiency_hydrogen': target_efficiency_hydrogen,
         'target_efficiency_electricity': target_efficiency_electricity,
+        'target_efficiency_ironore': target_efficiency_ironore,
         'target_efficiency_carbon': target_efficiency_carbon,
         'target_efficiency_labour': target_efficiency_labour,
         'traditional_price': traditional_price,
@@ -243,21 +269,32 @@ if base_hydrogen_units and base_electricity_units and base_carbon_units and base
     st.markdown(
         """
         ## Model Overview
-        **Purpose**: This is a simplified model to assist the conception of a mental model and guide scenario analysis to understand the compeitivity of a green steel industry 
+        **Purpose**: 
+        
+        This is a simplified model to assist the conception of a mental model and guide scenario analysis to understand the compeitivity of a green steel industry 
         (e.g by changing the input price projections in the sidebar).
 
-        **Model Framework**: Economies of scale is essentially *'cheaper costs per unit of output produced'*.
-        Production can be viewed as a function of labour and capital. Technology and learning-by-doing can increase efficiency of production.
+        **Model Framework**: 
         
-        An example can illustrate this:
+        Economies of scale is essentially *'cheaper costs per unit of output produced'*.
+        Production can be viewed as a function of labour and capital. Technology and learning-by-doing can increase efficiency of production.
+        Efficiency is defined as the reduction of **'wasted resource-units'**
+
+        Wasted resource-units are defined as the difference between the current units required for production and the optimum amount of units required for production.
+        The reason why an efficiency rate should not be applied to the aggregate amount of units for each production input, 
+        is because not all of the input units stock can be diminished.
+        
+        *An example can illustrate this:*
         
         Initially a labour, in period one, utilises capital inefficiently due to lack of experience using the technology. 
-        This lowers the physical capital utilisation rate during the period but after each period, 
-        their efficieny improves with diminishing returns. Note that efficiency isn't applied across the 'work' but should be viewed as shortening the 'wasted time'.
+        This lowers the physical capital utilisation rate during the period.
+        After each period, their efficieny improves with diminishing returns. 
+        Note that efficiency isn't applied across the 'work' but should be viewed as shortening the 'wasted labour resource-units',
+        with 'wasted labour resource-units' defined as the difference between current labour units required and the optimum amount.
 
-        There is a starting value for the **resource units** (defined as 'base year efficiency value').
-        There is an efficiency rate that is either targetted by management or organically materialised - diminishing all wasted **resource units** (defined as 'Waste Efficiency YoY Targets').
-        The costs of inputs is calculated as the multiplication of the resource units and their respective prices in that period (defined as 'Exogenous Price Projections').
+        There is a starting value for the **resource-units** (defined as 'base year efficiency value').
+        There is an efficiency rate that is either targetted by management or organically materialised - diminishing all wasted **resource-units** (defined as 'Waste Efficiency YoY Targets').
+        The costs of inputs is calculated as the multiplication of the resource-units and their respective prices in that period (defined as 'Exogenous Price Projections').
 
 
         
@@ -276,7 +313,7 @@ if base_hydrogen_units and base_electricity_units and base_carbon_units and base
         
         - *How does the cost curve change given different sets of hydrogen and electricity prices*
 
-        - *Given the base value of efficiencies for different resource inputs, what efficiency rates (for diminishing wasted resources units) should be targetted?*
+        - *Given the base value of efficiencies for different resource inputs, what efficiency rates (for diminishing wasted resource-units) should be targetted?*
 
 
         ## Input Parameter Explanations
@@ -304,12 +341,12 @@ if base_hydrogen_units and base_electricity_units and base_carbon_units and base
         
             - Base Labour Units
             Definition: This is the required amount of labour needed to be produced for steel in the base year.
-            Assumption: Given the new technology, perhaps labour on average is still inexperienced, meaning that there is wasted labour resource units being spent for instance 'figuring out what to do'.
+            Assumption: Given the new technology, perhaps labour on average is still inexperienced, meaning that there is wasted labour resource-units being spent for instance 'figuring out what to do'.
         
         - **Base Year Efficiency Values**
         *This set of input parameters defines how efficiently the the inputs of production are initially used. 
-        Consequently, this defines the amount of wasted resource units in each production period that needs to be diminished, achieving economies of scale.
-        Wasted resource units converge to zero with target YoY efficiency gains form 'Waste Efficiency YoY Targets'*.
+        Consequently, this defines the amount of wasted resource-units in each production period that needs to be diminished, achieving economies of scale.
+        Wasted resource-units converge to zero with target YoY efficiency gains form 'Waste Efficiency YoY Targets'*.
             
             - Raw Material Utilisation
             Definition: How much the raw materials are being used going into the production process. 
@@ -323,7 +360,7 @@ if base_hydrogen_units and base_electricity_units and base_carbon_units and base
             and the optimum amount of labour units required. 
 
         - **Waste Efficiency YoY Targets**
-        *These parameters define the rate at which the wasted resource units diminish over time.*
+        *These parameters define the rate at which the wasted resource-units diminish over time.*
             
             - Target Efficiency Hydrogen
             Definition: This is the YoY rate that wasted hydrogen diminishes.
